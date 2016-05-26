@@ -9,6 +9,7 @@ int Lcounter_2=0;
 int GetWifiC=0;
 int LightCC=0;
 int LightCWifi=0;
+int sending_waiter;
 int GetWifiS=0;
 /*-----------------------------------------------------------------------*/
 /* 设置单片机的模式和时钟                                                */
@@ -480,12 +481,18 @@ void Pit_1s_L(void)
 	{
 		Lcounter=0;
 		LightCC=1;
+
 	}
-	if(Lcounter_2==200)
+	if(Lcounter_2==80)
 	{
 		Lcounter_2=0;
 		LightCWifi=1;
 	}
+	if(Lcounter_2==10)
+	{
+		sending_waiter++;    //用来发送完等待一段时间
+	}
+	
 	PIT.CH[1].TFLG.B.TIF = 1;	// MPC56xxB/P/S: Clear PIT 1 flag by writing 1
 }
 

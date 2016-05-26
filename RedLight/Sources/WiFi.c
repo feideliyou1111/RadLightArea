@@ -8,6 +8,8 @@ int g_start_all=0;
 BYTE remote_frame_data[REMOTE_FRAME_LENGTH];
 BYTE remote_frame_data_send[REMOTE_FRAME_LENGTH];
 BYTE g_device_NO = WIFI_ADDRESS_CAR_1;	/* 设备号 即WiFi地址 */
+int have_responsed;
+int order_received;
 
 
 /*-----------------------------------------------------------------------*/
@@ -162,7 +164,18 @@ int rev_remote_frame_2(BYTE rev)
 			g_remote_frame_state = REMOTE_FRAME_STATE_OK;	//CheckSum Success
 		}
 	}
+	if (remote_frame_data[3] == 0xDD )   // 检查是否得到应答 红绿灯用
+	{
+		
+			have_responsed=1;	
+	}
+	else if (remote_frame_data[3] == 0xEE )   // 检查是否得到应答 红绿灯用
+	{
+		
+			order_received=1;	
+	}
 	
+
 	return g_remote_frame_state;
 }
 

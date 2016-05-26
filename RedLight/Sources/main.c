@@ -15,6 +15,10 @@ int Light_success=1;
 int TestLight=0;
 BYTE video_sender;
 
+BYTE waiting_for_response=0;
+int  lost_data=0;
+BYTE prepared_data_for_ancillary;
+
 void Mode0_DebugCamera(void);
 void Lightcontrol(void);
 void Light_wifi(BYTE LightCon);
@@ -22,21 +26,27 @@ void Mode1_SendVideo(void);
 void Mode2_GO(void);
 void Mode3_Andriod(void);
 
+void main_wifi_sender (BYTE data_input);
+void ancillary_wifi_sender (BYTE data_input2);
+void wifi_sender_checker(void);
+void wifi_receive_checker (void);
 void main(void)
 
 
 {
 	init_all_and_POST();
+	LCD_Fill(0x00);
+				
+	EMIOS_0.CH[3].CCR.B.FEN=1;//开场中断
+	LCD_write_english_string(96,0,"T");
+	LCD_write_english_string(96,2,"R");
 	Lightcontrol();
-//	if(mode==0)
-		//Mode0_DebugCamera();//图像显示屏显示，车速20，显示offset RoadType，舵机打角，wifi_car_action不激活
-//	else if(mode==1)
-//		Mode1_SendVideo();//推车录图像，仅摄像头图像发上位机
-//	else if(mode==2)
-//		Mode2_GO();//速度20，WIFI读卡循迹超声全开，图像不显示不发送
-//	else if(mode==3)
-//		Mode3_Andriod();//远程模式，上位机遥控车
+	
+
 }
+
+
+
 void Lightcontrol(void)
 {
 	StopL=1;
@@ -44,25 +54,17 @@ void Lightcontrol(void)
 	RunL=0;
 	for(;;)
 	{
-		if(LightCWifi==1)
-		{
-			LightCWifi=0;
-			if(Light_success==0)
-			{
-				if (g_remote_frame_state&&remote_frame_data[3]==0xDD)
-				{
-					g_remote_frame_state=REMOTE_FRAME_STATE_NOK;
-					Light_success=1;
-				}
-				else
-				{
-					if(StopL==1)
-						Light_wifi(0x0A);
-					if(StopL==0)
-						Light_wifi(0x0B);
-				}
-			}
-		}		
+//		LCD_PrintoutInt(0, 4, (int)remote_frame_data[0]);
+//		LCD_PrintoutInt(10, 4, (int)remote_frame_data[1]);
+//		LCD_PrintoutInt(20, 4, (int)remote_frame_data[2]);
+		LCD_PrintoutInt(30, 4, (int)remote_frame_data[3]);
+//		LCD_PrintoutInt(40, 4, (int)remote_frame_data[4]);
+//		LCD_PrintoutInt(50, 4, (int)remote_frame_data[5]);
+//		LCD_PrintoutInt(60, 4, (int)remote_frame_data[6]);
+//		LCD_PrintoutInt(70, 4, (int)remote_frame_data[7]);
+//		LCD_PrintoutInt(80, 4, (int)remote_frame_data[8]);
+//		LCD_PrintoutInt(90, 4, (int)remote_frame_data[9]);
+		LCD_PrintoutInt(0, 2, (int)lost_data);
 		if(LightCC==1)
 		{
 			LichtZahl++;
@@ -73,16 +75,14 @@ void Lightcontrol(void)
 			LichtZahl=0;
 			StopL=1;
 			RightL=0;
-			Light_wifi(0x0A);
-			Light_success=0;
+			main_wifi_sender(0x0A);
 		}
 		if(LichtZahl==8&&StopL==1)
 		{
 			LichtZahl=0;
 			StopL=0;
 			RunL=1;
-			Light_wifi(0x0B);
-			Light_success=0;
+			main_wifi_sender(0x0B);
 		}
 		if(LichtZahl==7&&RunL==1)
 		{
@@ -90,15 +90,115 @@ void Lightcontrol(void)
 			RunL=0;
 			RightL=1;
 		}
+		if(LightCWifi==1)            // 有一个时间间隔为了 保证在没有收到的时候不会发疯一样发
+		{
+			LightCWifi=0;
+			wifi_sender_checker();//每次检查一次是否收到回复  注意：子函数在被设计为发送完一定时间内不会工作，防止对方还没回答这里不停发
+			wifi_receive_checker();    // 收到数据回复我收到了 by xiong
+		}
+		
+			
 	}
 }
-void Light_wifi(BYTE LightCon)
-{
-	if(LightCon==0x0A)
-		rfid_ask_road(0xDD, 0x33, 0x04, 0x00DD000A);
-	if(LightCon==0x0B)
-		rfid_ask_road(0xDD, 0x33, 0x04, 0x00DD000B);
+
+
+
+//*********************************************************************************
+//  主发送程序                 输入： 发送所需的数据      输出： 1 串口发送      2  waiting位     3 串口发送备份给备发送程序    4 发送丢失数
+//*********************************************************************************
+void main_wifi_sender (BYTE data_input)
+{  
+//	***********如果依然在等待回复，放弃上一个发送的等待，并且lostdata数加一***************
+	if (waiting_for_response==1)
+	{
+	   lost_data++;
+	   waiting_for_response=0;
+	}
+//	***********发送函数主体***************	                                    
+	if(data_input==0x0A)				
+		
+		    rfid_ask_road(0xDD, 0x33, 0x04, 0x00DD000A);
+
+	if(data_input==0x0B)
+			rfid_ask_road(0xDD, 0x33, 0x04, 0x00DD000B);
+//  ***********把发送数据交给辅助发送程序*************** 
+	prepared_data_for_ancillary=data_input;
+//  ***********等待回复位置1*************** 
+	waiting_for_response=1;
+	have_responsed=0;  
+	sending_waiter=0;
 }
+
+
+
+
+//*********************************************************************************
+//  辅助发送程序                 输入： 如果未应答，再发送数据      输出：  串口发送    
+//*********************************************************************************
+void ancillary_wifi_sender (BYTE data_input2)
+{                                      
+	if(data_input2==0x0A)				
+		
+		    rfid_ask_road(0xDD, 0x33, 0x04, 0x00DD000A);
+
+	if(data_input2==0x0B)
+			rfid_ask_road(0xDD, 0x33, 0x04, 0x00DD000B);
+}
+
+
+
+//*********************************************************************************
+//  应答检查程序               定时检查发送的数据是否得到了应答，若未，则使用辅助发送程序再次发送。 直到收到应答或有新的程序要发数据。
+//*********************************************************************************
+void wifi_sender_checker (void)
+{ 
+	if (sending_waiter<5)
+	{
+		return;
+	}
+	else
+	{
+		if (waiting_for_response==1)
+		{
+			if (have_responsed==1)
+			{
+				waiting_for_response=0;
+			}
+			else if (have_responsed==0)
+			{
+				ancillary_wifi_sender (prepared_data_for_ancillary);
+			}
+		}
+	}
+}
+
+
+//*********************************************************************************
+//  收数据检查程序              如果受到了非应答的程序（即实打实的命令），回复收到
+//*********************************************************************************
+void wifi_receive_checker (void)
+{
+	if (order_received == 1)
+	{
+		order_received=0;
+		rfid_ask_road(0xDD, 0x33, 0x04, 0x00000000);
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void Mode0_DebugCamera(void)
 {
 //	set_speed_target(20);

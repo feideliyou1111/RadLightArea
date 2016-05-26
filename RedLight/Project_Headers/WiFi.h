@@ -93,7 +93,9 @@ extern BYTE remote_frame_data[];
 extern int g_remote_frame_state;
 extern BYTE g_device_NO;
 extern int g_start_all;
-
+extern int have_responsed;
+extern int sending_waiter;
+extern int order_received;
 /* 远程控制标志位 */
 #ifdef __WIFI_C_
 struct
