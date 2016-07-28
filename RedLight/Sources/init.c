@@ -316,7 +316,7 @@ void init_all_and_POST(void)
 	
 	/* 初始化SPI总线 */
 	init_DSPI_1();
-	init_pit();
+//	init_pit();
 	init_led();
 	init_DIP();
 	init_serial_port_1();//Wifi_ouyang
@@ -475,23 +475,33 @@ void init_pit_1s_L(void)
 }
 void Pit_1s_L(void)
 {
-	Lcounter++;
-	Lcounter_2++;
+//	Lcounter++;
+//	Lcounter_2++;
+	if(LightCWifi==1)
+	{
+		Lcounter++;
+	}
 	if(Lcounter==100)
 	{
 		Lcounter=0;
 		LightCC=1;
-
+		LightCWifi=0;
 	}
-	if(Lcounter_2==80)
-	{
-		Lcounter_2=0;
-		LightCWifi=1;
-	}
-	if(Lcounter_2==10)
-	{
-		sending_waiter++;    //用来发送完等待一段时间
-	}
+//	if(Lcounter==100)
+//	{
+//		Lcounter=0;
+//		LightCC=1;
+//
+//	}
+//	if(Lcounter_2==80)
+//	{
+//		Lcounter_2=0;
+//		LightCWifi=1;
+//	}
+//	if(Lcounter_2==5)
+//	{
+//		sending_waiter++;    //用来发送完等待一段时间
+//	}
 	
 	PIT.CH[1].TFLG.B.TIF = 1;	// MPC56xxB/P/S: Clear PIT 1 flag by writing 1
 }

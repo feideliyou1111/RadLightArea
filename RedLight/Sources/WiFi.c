@@ -5,6 +5,7 @@
 int g_remote_frame_state = REMOTE_FRAME_STATE_NOK;
 int g_remote_frame_cnt = 0;
 int g_start_all=0;
+int Light_Status=0;
 BYTE remote_frame_data[REMOTE_FRAME_LENGTH];
 BYTE remote_frame_data_send[REMOTE_FRAME_LENGTH];
 BYTE g_device_NO = WIFI_ADDRESS_CAR_1;	/* 设备号 即WiFi地址 */
@@ -132,7 +133,7 @@ int rev_remote_frame_2(BYTE rev)
 	else if (g_remote_frame_cnt == 3)	//接收目的地址
 	{
 		remote_frame_data[g_remote_frame_cnt++] = rev;
-		if (rev != g_device_NO && rev != 0xFF)
+		if (rev != g_device_NO && rev != 0xFF && rev != 0xEE)
 		{
 			g_remote_frame_cnt = 0;	//不是发给本机的
 		}
@@ -164,16 +165,7 @@ int rev_remote_frame_2(BYTE rev)
 			g_remote_frame_state = REMOTE_FRAME_STATE_OK;	//CheckSum Success
 		}
 	}
-	if (remote_frame_data[3] == 0xDD )   // 检查是否得到应答 红绿灯用
-	{
-		
-			have_responsed=1;	
-	}
-	else if (remote_frame_data[3] == 0xEE )   // 检查是否得到应答 红绿灯用
-	{
-		
-			order_received=1;	
-	}
+	
 	
 
 	return g_remote_frame_state;
@@ -316,4 +308,16 @@ void rfid_ask_road(BYTE scr, BYTE des, BYTE length, DWORD RFID_Num)
 	remote_frame_data_send[i++] = check;
 	serial_port_0_TX_array(remote_frame_data_send, 10);//ouyang
 }
-
+void Wifi_Ctrl()
+{
+	if(remote_frame_data[2] == 0x33 )//熊老板上位机
+	{
+		if (remote_frame_data[3] == 0xEE && remote_frame_data[5]==0x00 && remote_frame_data[6]==0x01)   
+		{
+			if(remote_frame_data[8]==0x0A)
+				Light_Status=0;	
+			if(remote_frame_data[8]==0x0B)
+				Light_Status=1;	
+		}// 红绿灯状态
+	}	
+}

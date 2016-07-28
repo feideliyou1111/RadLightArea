@@ -93,6 +93,7 @@ extern BYTE remote_frame_data[];
 extern int g_remote_frame_state;
 extern BYTE g_device_NO;
 extern int g_start_all;
+extern int Light_Status;
 extern int have_responsed;
 extern int sending_waiter;
 extern int order_received;
@@ -138,6 +139,7 @@ extern void send_remote_request_data(void);
 void send_net_cmd(BYTE des, WORD net_cmd);
 void rfid_ask_road(BYTE scr, BYTE des, BYTE length, DWORD RFID_Num);
 void report_online(void);
+extern void Wifi_Ctrl();
 
 
 
