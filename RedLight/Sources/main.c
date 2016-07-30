@@ -36,6 +36,20 @@ void main(void)
 	LCD_Fill(0x00);			
 	EMIOS_0.CH[3].CCR.B.FEN=1;//开场中断
 	Lightcontrol();
+//	for (;;)
+//	{
+//		D5=~D5;
+//		D6=~D6;
+//		D7=~D7;
+//		D8=~D8;
+//		SIU.GPDO[65].B.PDO=~SIU.GPDO[65].B.PDO;
+//		SIU.GPDO[66].B.PDO=~SIU.GPDO[66].B.PDO;
+//		SIU.GPDO[69].B.PDO=~SIU.GPDO[69].B.PDO;
+//		SIU.GPDO[70].B.PDO=~SIU.GPDO[70].B.PDO;
+//				
+//		delay_ms(500);
+//	}
+	
 }
 
 
@@ -58,23 +72,33 @@ void Lightcontrol(void)
 			if(GreenL_main==1)
 			{
 				YellowL_main=1;
+					YellowL_main2=1;
 				RedL_main=0;
+					RedL_main2=0;
 				GreenL_main=0;
+					GreenL_main2=0;
 				LightCWifi=1;
 			}
 			if(LightCC==1)
 			{
 				LightCC=0;
 				YellowL_main=0;
+					YellowL_main2=0;
 				GreenL_main=0;
+					GreenL_main2=0;
 				RedL_main=1;
+					RedL_main2=1;
 			}
 		}
 		if(Light_Status==1)//绿灯
 		{
 			GreenL_main=1;
+				GreenL_main2=1;
 			YellowL_main=0;
+				YellowL_main2=0;
 			RedL_main=0;
+				RedL_main2=0;	
+			
 		}	
 	}
 }

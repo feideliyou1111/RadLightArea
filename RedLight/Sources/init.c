@@ -74,6 +74,12 @@ void init_led(void)
  	SIU.PCR[72].R = 0x0203; /* PE8 */
 	SIU.PCR[73].R = 0x0203;	/* PE9  */	
 
+	//借用MOTOR
+ 	SIU.PCR[65].R = 0x0203;	/* PB0  */
+  	SIU.PCR[66].R = 0x0203; /* PB1 */
+ 	SIU.PCR[69].R = 0x0203; /* PE8 */
+	SIU.PCR[70].R = 0x0203;	/* PE9  */	
+
 	//第二版板载LED
 	SIU.PCR[12].R = 0x0203;/* PA12  */
 	SIU.PCR[13].R = 0x0203;/* PA13  */
@@ -311,8 +317,8 @@ void init_all_and_POST(void)
 	
 	disable_watchdog();
 	init_modes_and_clock();
-	initEMIOS_0MotorAndSteer();
-	initEMIOS_0Image();/* 摄像头输入中断初始化 */
+	//initEMIOS_0MotorAndSteer();
+	//initEMIOS_0Image();/* 摄像头输入中断初始化 */
 	
 	/* 初始化SPI总线 */
 	init_DSPI_1();
