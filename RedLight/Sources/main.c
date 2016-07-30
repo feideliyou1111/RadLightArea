@@ -42,9 +42,9 @@ void main(void)
 
 void Lightcontrol(void)
 {
-	StopL=1;
-	RightL=0;
-	RunL=0;
+	RedL_main=1;
+	YellowL_main=0;
+	GreenL_main=0;
 	for(;;)
 	{
 		if (REMOTE_FRAME_STATE_OK == g_remote_frame_state)
@@ -55,26 +55,26 @@ void Lightcontrol(void)
 		}
 		if(Light_Status==0)//红灯
 		{
-			if(RunL==1)
+			if(GreenL_main==1)
 			{
-				RightL=1;
-				StopL=0;
-				RunL=0;
+				YellowL_main=1;
+				RedL_main=0;
+				GreenL_main=0;
 				LightCWifi=1;
 			}
 			if(LightCC==1)
 			{
 				LightCC=0;
-				RightL=0;
-				RunL=0;
-				StopL=1;
+				YellowL_main=0;
+				GreenL_main=0;
+				RedL_main=1;
 			}
 		}
 		if(Light_Status==1)//绿灯
 		{
-			RunL=1;
-			RightL=0;
-			StopL=0;
+			GreenL_main=1;
+			YellowL_main=0;
+			RedL_main=0;
 		}	
 	}
 }

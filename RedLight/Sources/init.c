@@ -91,9 +91,9 @@ void init_led(void)
 
 //车灯全亮
 	LeftL = 1;	/* 0=熄灭 */
-	RightL = 1;
-	StopL = 1;
-	RunL = 1;
+	YellowL_main = 1;
+	GreenL_main = 1;
+	RedL_main = 1;
 }
 
 
